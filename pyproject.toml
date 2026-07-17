@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "recall-cc"
+dynamic = ["version"]
+description = "과거 Claude Code 세션을 즉시 전문 검색한다 — LLM 0 호출, 토큰 0 (SQLite FTS5)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "dawith" }]
+keywords = ["claude", "claude-code", "search", "sqlite", "fts5", "sessions", "history", "ai-agent"]
+dependencies = []
+
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Operating System :: MacOS",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development",
+  "Topic :: Utilities",
+]
+
+[project.urls]
+Homepage = "https://github.com/dawith-ai/recall"
+Repository = "https://github.com/dawith-ai/recall"
+Issues = "https://github.com/dawith-ai/recall/issues"
+
+[project.scripts]
+recall = "recall.cli:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.setuptools]
+packages = ["recall"]
+
+[tool.setuptools.dynamic]
+version = { attr = "recall.__version__" }
+
+[tool.setuptools.package-data]
+recall = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
