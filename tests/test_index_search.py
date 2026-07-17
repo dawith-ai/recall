@@ -78,6 +78,15 @@ def test_한국어_부분검색(cfg):
         assert len(store.search("갱신을", None, 10)) == 1     # 조사 붙은 채로도
 
 
+def test_두글자_한국어_검색(cfg):
+    """trigram 은 3글자 미만을 못 만든다. '토큰' 같은 2글자 한국어는 LIKE 로 우회해야 한다."""
+    _seed(cfg.projects_dir)
+    build_index(cfg)
+    with Store(cfg.db_path) as store:
+        assert len(store.search("토큰", None, 10)) == 1   # 2글자 — LIKE 폴백
+        assert len(store.search("갱신", None, 10)) == 1
+
+
 def test_증분_변경된_파일만_다시_색인(cfg):
     _seed(cfg.projects_dir)
     build_index(cfg)

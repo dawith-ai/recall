@@ -20,7 +20,7 @@ def env(tmp_path, monkeypatch):
     d = projects / "-home-alice-my-api"
     d.mkdir(parents=True)
     (d / "s1.jsonl").write_text(
-        _line(cwd="/home/alice/my-api", timestamp="2026-07-01T10:00:00Z",
+        _line(type="user", cwd="/home/alice/my-api", timestamp="2026-07-01T10:00:00Z",
               message={"role": "user", "content": "OAuth 토큰 갱신 버그를 고쳤다"}) + "\n",
         encoding="utf-8",
     )
@@ -67,6 +67,8 @@ def test_stats(env, capsys):
     cli.main(["stats"])
     out = capsys.readouterr().out
     assert "인덱스:" in out and "my-api" in out
+    assert "기간:" in out       # 날짜 범위
+    assert "역할:" in out       # 역할 분포
 
 
 def test_version(capsys):

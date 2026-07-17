@@ -69,13 +69,30 @@ def cmd_resume(cfg: Config, args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_serve(cfg: Config, args: argparse.Namespace) -> int:
+    from recall.mcp import serve
+
+    return serve(cfg)
+
+
 def cmd_stats(cfg: Config, args: argparse.Namespace) -> int:
     with Store(cfg.db_path) as store:
         files, msgs = store.counts()
         engine = "FTS5" if store.fts else "LIKE 폴백"
-        print(f"인덱스: 파일 {files}개 / 메시지 {msgs}개 / 엔진 {engine}")
-        for project, n in store.by_project(8):
-            print(f"  {project}: {n}")
+        first, last = store.date_range()
+        print(f"인덱스: 세션 {files}개 · 메시지 {msgs:,}개 · 엔진 {engine}")
+        if first and last:
+            print(f"기간: {first[:10]} ~ {last[:10]}")
+        roles = store.role_counts()
+        if roles:
+            parts = " · ".join(f"{r} {n:,}" for r, n in roles)
+            print(f"역할: {parts}")
+        top = store.by_project(10)
+        if top:
+            print("\n활발한 프로젝트:")
+            width = max((len(p) for p, _ in top), default=0)
+            for project, n in top:
+                print(f"  {project.ljust(width)}  {n:,}")
     return 0
 
 
@@ -96,7 +113,8 @@ def main(argv: list[str] | None = None) -> int:
         sp.add_argument("-n", "--limit", type=int, default=10, help="결과 개수")
         sp.set_defaults(fn=cmd_search if name == "search" else cmd_resume)
 
-    sub.add_parser("stats", help="인덱스 현황").set_defaults(fn=cmd_stats)
+    sub.add_parser("stats", help="인덱스 현황 + 데이터 요약").set_defaults(fn=cmd_stats)
+    sub.add_parser("serve", help="MCP 서버로 실행 (에이전트가 직접 검색)").set_defaults(fn=cmd_serve)
 
     args = p.parse_args(argv)
     cfg = Config.from_env()

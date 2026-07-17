@@ -100,8 +100,25 @@ class Store:
             (limit,),
         ).fetchall()
 
+    def date_range(self) -> tuple[str | None, str | None]:
+        """색인된 메시지의 가장 이른/늦은 타임스탬프. 빈 문자열은 제외한다."""
+        row = self.conn.execute(
+            "SELECT MIN(ts), MAX(ts) FROM msgs WHERE ts != ''"
+        ).fetchone()
+        return (row[0], row[1]) if row else (None, None)
+
+    def role_counts(self) -> list[tuple[str, int]]:
+        return self.conn.execute(
+            "SELECT role, COUNT(*) n FROM msgs WHERE role != '' "
+            "GROUP BY role ORDER BY n DESC"
+        ).fetchall()
+
+    #: trigram 토크나이저가 트라이그램을 만들려면 최소 3글자가 필요하다.
+    #: 그보다 짧은 질의(한국어 2글자 '토큰'·'버그' 등)는 LIKE 부분검색으로 우회한다.
+    _MIN_FTS_LEN = 3
+
     def search(self, query: str, project: str | None, limit: int) -> list[SearchHit]:
-        if self.fts:
+        if self.fts and len(query.strip()) >= self._MIN_FTS_LEN:
             rows = self._search_fts(query, project, limit)
         else:
             rows = self._search_like(query, project, limit)

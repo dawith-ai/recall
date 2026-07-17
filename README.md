@@ -12,9 +12,11 @@
 
 ---
 
+**Your agent already has a memory — it's just not indexed.** Every Claude Code session you've ever run is sitting on disk. `recall` indexes it and makes it searchable, retroactively. No hooks to install months in advance, no "start recording from now." The history is already there.
+
 You solved this exact bug three months ago. In which session? You have no idea, and scrolling `~/.claude/projects` by hand is hopeless.
 
-`recall` indexes all of it and gives you full-text search across your entire history:
+`recall` gives you full-text search across your entire history:
 
 ```console
 $ recall search "oauth token refresh"
@@ -47,6 +49,8 @@ cd /home/you/my-api && claude --resume a3f8c9e1-...
 
 **Search *is* resume.** Every result carries the command to jump back into that exact session with its context intact. `recall resume "<query>"` prints it for the best match.
 
+**Reads what's already there, not "from now on."** Tools that give agents memory typically start capturing the day you install them. `recall` reads the sessions already on your disk — search months of history the minute you install it. (It composes fine with capture-based memory tools; they answer different questions.)
+
 ## Install
 
 ```bash
@@ -71,10 +75,21 @@ recall search "reset password"     # full-text search across all history
 recall search "migration" -p api   # limit to projects matching "api"
 recall search "flaky test" -n 20   # more results
 recall resume "oauth refresh"      # print the command to resume the best match
-recall stats                       # index size + busiest projects
+recall stats                       # totals, date range, roles, busiest projects
+recall serve                       # run as an MCP server (for the agent itself)
 ```
 
 Re-run `recall index` whenever you want to pick up new sessions — it only reads files that changed since last time, so it stays fast.
+
+## Let the agent search its own past (MCP)
+
+`recall` is also an [MCP](https://modelcontextprotocol.io) server, so Claude can search its **own** history mid-task — "how did I handle this before?" answered by the agent, not you.
+
+```bash
+claude mcp add recall -- recall serve
+```
+
+Now the agent has two tools: `search_sessions` and `resume_session`. When it's about to redo something it already worked out, it can look it up first. The MCP server is the same zero-dependency Python — it speaks JSON-RPC over stdio with nothing but the standard library, so there's no SDK to install.
 
 ## How it works
 
